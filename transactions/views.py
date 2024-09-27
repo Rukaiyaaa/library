@@ -5,6 +5,9 @@ from books.models import Book
 from .forms import DepositForm
 from django.http import HttpResponse
 from django.contrib import messages
+from django.core.mail import send_mail
+from django.conf import settings
+from decimal import Decimal
 
 
 
@@ -15,13 +18,19 @@ def deposit(request):
         form = DepositForm(request.POST)
         if form.is_valid():
             amount = form.cleaned_data['amount']
-            # Get the latest balance from the last transaction or default to 0
             latest_transaction = Transaction.objects.filter(user=user).last()
             current_balance = latest_transaction.remaining_balance if latest_transaction else 0
             new_balance = current_balance + amount
 
-            # Convert Decimal to float before storing in session
-            request.session['remaining_balance'] = float(new_balance)  # Store balance as float
+            request.session['remaining_balance'] = float(new_balance) 
+
+            send_mail(
+                'Deposit Successful',
+                f'Dear {user.username},\n\nYour deposit of {amount} Taka was successful! Your new balance is {new_balance} Taka.\n\nThank you!',
+                settings.EMAIL_HOST_USER,
+                [user.email],
+                fail_silently=False,
+            )
 
             messages.success(request, f'Deposit of {amount} Taka successful! Your new balance is {new_balance} Taka.')
 
@@ -32,25 +41,21 @@ def deposit(request):
 
 
 
-from decimal import Decimal
 
 @login_required
 def borrow_book(request, book_id):
     user = request.user
     book = Book.objects.get(id=book_id)
     
-    # Get the user's latest balance and convert to Decimal
+
     current_balance = Decimal(request.session.get('remaining_balance', 0.0))
     
-    # Get the borrowing price as Decimal
     borrowing_price = book.borrowing_price
 
     if current_balance >= borrowing_price:
-        # Deduct the book price from the user's balance
         new_balance = current_balance - borrowing_price
-        request.session['remaining_balance'] = float(new_balance)  # Store balance as float
-        
-        # Create a new transaction for borrowing the book
+        request.session['remaining_balance'] = float(new_balance)  
+
         transaction = Transaction.objects.create(
             user=user,
             book=book,
@@ -60,9 +65,17 @@ def borrow_book(request, book_id):
         )
         transaction.save()
         
-        # Reduce the book quantity
+
         book.quantity -= 1
         book.save()
+
+        send_mail(
+            'Book Borrowed Successfully',
+            f'Dear {user.username},\n\nYou have successfully borrowed "{book.title}". Your remaining balance is {new_balance} Taka.\n\nThank you!',
+            settings.EMAIL_HOST_USER,
+            [user.email],
+            fail_silently=False,
+        )
 
         messages.success(request, f'You have successfully borrowed "{book.title}". Your remaining balance is {new_balance} Taka.')
         
@@ -79,7 +92,6 @@ def transaction_report(request):
     user = request.user
     transactions = Transaction.objects.filter(user=user).order_by('-date')
 
-    # Get the current balance from the session and convert to float
     remaining_balance = float(request.session.get('remaining_balance', 0))
 
     return render(request, 'transaction_report.html', {

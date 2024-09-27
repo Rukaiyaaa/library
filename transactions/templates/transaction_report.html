@@ -5,12 +5,12 @@
 <div class="container mt-5 mb-5">
   <h3 class="m-auto" style="width:200px; height:50px; border:1px solid gray; font-size:20px; text-align:center;"><b>Transaction Report</b></h3>
 
-  <!-- Show the total balance at the top -->
+
   <div class="alert alert-info mt-5">
       <strong>Total Balance:</strong> {{ remaining_balance }} Taka
   </div>
 
-  <!-- Table displaying transaction details -->
+
   <table class="table table-bordered">
       <thead>
           <tr>
@@ -23,20 +23,16 @@
       <tbody>
           {% for transaction in transactions %}
           <tr>
-              <!-- Show book title or 'Deposit' if no book -->
               <td>{{ transaction.book.title }}</td>
               
-              <!-- Show the book price or the deposit amount -->
               <td>
                   {% if transaction.book %}
                       {{ transaction.book.borrowing_price }} Taka
                   {% endif %}
               </td>
 
-              <!-- Remaining balance -->
               <td>{{ transaction.remaining_balance }} Taka</td>
               
-              <!-- Date of transaction -->
               <td>{{ transaction.date }}</td>
           </tr>
           {% endfor %}
