@@ -1,0 +1,56 @@
+{% extends 'base.html' %} 
+{% load static %}
+{% block content %}
+
+
+<div class="d-flex flex-wrap px-5 pt-3 align-items-center">
+
+  <div class="col-6">
+    <h1>Welcome to Library</h1>
+    <p>"Welcome to Library! Discover a world of knowledge at your fingertips. Our library offers a vast collection of books, e-resources, and engaging programs designed to inspire lifelong learning. Whether you're looking for your next great read or seeking research materials, we have something for everyone.we are dedicated to fostering a love for reading and learning within our community. Established in 2000, our library serves as a vital resource for students, researchers, and avid readers alike. With a commitment to promoting literacy and education, we offer a wide range of services, including book lending, digital resources, community events, and educational programs."</p>
+  </div>
+  <div class="col-6">
+    <img style="width:480px; height:480px" src="{% static 'download (5).jpeg' %}" />
+  </div>
+</div>
+
+
+  <div class="bg-white p-3 m-auto" >
+    <h5 class="mb-4">All Books Category</h5>
+    {% for book in category %}
+    <div class="form-check form-check-inline ">
+      <input
+        class="form-check-input"
+        type="checkbox"
+        class="btn-check"
+        name="flexRadioDefault"
+        id="{{book.id}}"
+      />
+      <label class="btn btn-warning" for="{{book.id}}">
+        
+        <a href="{% url 'category_wise_post' book.slug %}" class="text-decoration-none text-dark" >{{book.book_category}}</a>
+      </label>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="p-3">
+    <h4>{{data | length}} results found</h4>
+    <div class="d-flex flex-wrap pt-5">
+      {% for book in data %}
+      <div class="col-sm-3">
+        <div class="card m-2">
+          <div class="card-body">
+            <img src="{{book.image.url}}" class="card-img-top" style="height:300px;" alt="...">
+            <h5 class="card-title"><a href="{% url 'detail_book' book.id %}" class="text-decoration-none text-dark">{{book.title}}</a></h5>
+            <p class="card-text"><b>Price: </b>{{book.borrowing_price}}</p>
+            <p class="card-text"><b>Category: </b>{{book.category}}</p>
+            <p class="card-text">{{book.description | truncatewords:10}}</p>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+{% endblock %}
